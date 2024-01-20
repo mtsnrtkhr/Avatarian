@@ -23,5 +23,5 @@ You can install this app in 3 steps for Windows.
 3. Install Python
 A lot of user may use this app for work.
 Then you need to care about licence of C++ compiler.
-I recommend ![Microsoft C++ Build Tool](https://visualstudio.microsoft.com/ja/visual-cpp-build-tools/) for it.
+I recommend [Microsoft C++ Build Tool](https://visualstudio.microsoft.com/ja/visual-cpp-build-tools/) for it.
 
