@@ -21,7 +21,7 @@ You can install this app in 5 steps for Windows from completely new.
 1. Install C++ compiler. ("Microsoft C++ Build Tool" is recommended)  
 2. Install Cmake. (Optional when you use "Microsoft C++ Build Tool")  
     Please make sure to add PATH to the environmental variables.
-3. Install Python (>3.10). 
+3. Install Python (>3.10).   
     Please make sure to add PATH to the environmental variables.
 4. Download "Avatarian" from this repository as zip file and extract it.  
 5. Install libraries of Python by the script below in cmd.exe.  
