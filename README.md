@@ -22,7 +22,8 @@ You can install this app in 5 steps for Windows.
 2. Install Cmake  
 3. Install Python  
 4. Download Avatarian as zip file and extract it.  
-5. ```shell
+5. Install libraries of Python.
+```shell
 pip install opencv-python face_recognition pyautogui pygetwindow setuptools
 ```
 
