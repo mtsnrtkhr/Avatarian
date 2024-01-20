@@ -33,7 +33,7 @@ pip install opencv-python face_recognition pyautogui pygetwindow setuptools
 You may use this app for work.  
 Then you need to care about licence of C++ compiler.  
 Microsoft Visual Studio Community is OK for personal user but  
-I recommend [Microsoft C++ Build Tool](https://visualstudio.microsoft.com/ja/visual-cpp-build-tools/) for commercial use.  
+I recommend [Microsoft C++ Build Tool](https://visualstudio.microsoft.com/visual-cpp-build-tools/) for commercial use.  
 See the article below for the licence.  
 [Updates to Visual Studio Build Tools license for C and C++ Open-Source projects](https://devblogs.microsoft.com/cppblog/updates-to-visual-studio-build-tools-license-for-c-and-cpp-open-source-projects/)(August 18th, 2022)  
 
