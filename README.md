@@ -18,9 +18,10 @@ Please save your favorite avatar image in the avatars folder in either jpg or pn
 
 ### How to install
 You can install this app in 3 steps for Windows.
-1. Install C++ compiler
-2. Install C++ (Cmake)
-3. Install Python
+1. Install C++ compiler  
+2. Install C++ (Cmake)  
+3. Install Python  
+
 A lot of user may use this app for work.
 Then you need to care about licence of C++ compiler.
 I recommend [Microsoft C++ Build Tool](https://visualstudio.microsoft.com/ja/visual-cpp-build-tools/) for it.
