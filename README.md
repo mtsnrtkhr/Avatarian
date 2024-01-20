@@ -3,7 +3,7 @@ Avatarian is an app that transforms the faces of people in web conferences into 
 
 ### Demo image
 ![Demo Image](media/avatarian_demo.jpg "Avatarian on Around")
-This is a demo image Avatarian on "Around" web meeting.
+This is a demo image of Avatarian on "Around" web meeting App.
 
 ### How to Use
 Please execute the following command:
