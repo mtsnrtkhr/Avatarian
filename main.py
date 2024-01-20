@@ -27,14 +27,21 @@ avatars = [cv2.imread(image_path) for image_path in avatar_images_paths]
 known_face_encodings = []  # This will hold the numpy array of face encodings
 face_to_avatar_index = {}
 
+print("Active titles are below. Please select the word(s) in it when you fail to start.\n")
+for wnd in gw.getAllWindows():
+    if len(wnd.title):
+        print(wnd.title) 
 # タイトルが指定されたウィンドウを取得
 windows = gw.getWindowsWithTitle(window_title)
 if windows:
+    # remove cmd.exe as first choice of the window in case you run main.py from cmd.exe
+    if window_title in windows[0].title and "main.py" in windows[0].title:
+        windows.pop(0)
     window = windows[0]
     window.restore()  # 最小化されている場合はウィンドウを元に戻す
     window.activate()  # ウィンドウをアクティブにする
 else:
-    print(f"'{window_title}' タイトルのウィンドウが見つかりませんでした。")
+    print(f"'{window_title}' 指定した名前のウィンドウが見つかりませんでした。")
     sys.exit(1)  # ウィンドウが見つからなかった場合にプログラムを終了
 
 # 無限ループで映像を処理する
@@ -66,7 +73,7 @@ while True:
                 face_to_avatar_index[len(known_face_encodings) - 1] = len(known_face_encodings) - 1
                 avatar_image = avatars[len(known_face_encodings) - 1]
             else:
-                continue  # No more avatars available
+                avatar_image = avatars[-1]  # Use last one when No more avatars available
 
 
         # Get the face location and calculate the new size and position
@@ -103,7 +110,7 @@ while True:
     '''
 
     # 画像を表示する
-    cv2.imshow("Avatarian", frame)
+    cv2.imshow("@"+window_title, frame)
     # qキーを押すと終了する
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
