@@ -30,9 +30,9 @@ If you want to use this application with an RTMP stream as the output, run the c
 ```shell
 python main.py -window WINDOW_NAME -camera CAMERA_NUMBER -rtmp YOUR_RTMP_STREAMING_URL
 ```
-Replace WINDOW_NAME with the name of the window you want to capture  
-or CAMERA_NUMBER with the number of the camera you want to use,  
-and replace "YOUR_RTMP_STREAMING_URL" with your actual RTMP streaming URL.
+Replace WINDOW_NAME with the name of the window you want to capture or  
+CAMERA_NUMBER with the number of the camera you want to use,  
+and replace YOUR_RTMP_STREAMING_URL with your actual RTMP streaming URL.
 
 ### Avatars
 At this moment you can use only images.  
