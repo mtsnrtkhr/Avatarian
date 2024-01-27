@@ -165,5 +165,6 @@ if args.window:
 else:
     cap.release()
 if process:
-    process.release()
+    process.terminate()
+    process.wait()
 
