@@ -6,11 +6,33 @@ Avatarian is an app that transforms the faces of people in web conferences into 
 This is a demo image of Avatarian on "Around" web meeting App.
 
 ### How to Use
-Please execute the following command:
+To use this application for an app that is currently running, run the command
 ```shell
-python main.py "Window name of your app"
+python main.py WINDOW_NAME
 ```
-Currently, only the window that is in the foreground can be captured.
+or
+```shell
+python main.py -window WINDOW_NAME
+```
+Please replace WINDOW_NAME with the name of the window you want to capture.  
+Note that the application can only capture the window that is in the foreground.”
+
+#### Input option
+To use this application with your PC’s camera, run the command
+```shell
+python main.py -camera CAMERA_NUMBER
+```
+Here, CAMERA_NUMBER is the number assigned to the camera you want to use.  
+For example, if you want to use the first camera, you would enter python main.py -camera 0.
+
+#### Output option
+If you want to use this application with an RTMP stream as the output, run the command 
+```shell
+python main.py -window WINDOW_NAME -camera CAMERA_NUMBER -rtmp YOUR_RTMP_STREAMING_URL
+```
+Replace WINDOW_NAME with the name of the window you want to capture  
+or CAMERA_NUMBER with the number of the camera you want to use,  
+and replace "YOUR_RTMP_STREAMING_URL" with your actual RTMP streaming URL.
 
 ### Avatars
 At this moment you can use only images.  
