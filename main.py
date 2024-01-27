@@ -54,7 +54,7 @@ if args.window:
         window = windows[0]
         window.restore()  # 最小化されている場合はウィンドウを元に戻す
         window.activate()  # ウィンドウをアクティブにする
-        w, h = window.width, window.height
+        w, h = int(window.width), int(window.height)
     else:
         print(f"'{args.window}' 指定した名前のウィンドウが見つかりませんでした。")
         print("Active titles are below. Please select the word(s) in it when you fail to start.\n")
@@ -66,8 +66,8 @@ if args.window:
 elif args.camera is not None:
     # カメラを使用
     cap = cv2.VideoCapture(args.camera)
-    w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-    h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         
 else:
     print('Please specify an input source using -window or -camera.')
@@ -76,7 +76,6 @@ else:
 # 出力先を設定
 if args.rtmp and ffmpeg_available:
     # RTMPを使用
-    print(args.rtmp,w,h)
     command = ['ffmpeg', '-y', '-f', 'rawvideo', '-vcodec', 'rawvideo', '-pix_fmt', 'bgr24', '-s', '{}x{}'.format(w, h), '-r', '25', '-i', '-', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'ultrafast', '-f', 'flv', '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2'.format(w), args.rtmp]
     # ffmpegプロセスの開始
     process = subprocess.Popen(command, stdin=subprocess.PIPE)
