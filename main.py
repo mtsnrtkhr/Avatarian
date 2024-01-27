@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # 必要なライブラリをインポート
 import cv2
 import face_recognition
@@ -6,13 +7,28 @@ import pygetwindow as gw
 import pyautogui
 import glob
 import sys
+import argparse
+import subprocess
+from time import sleep
 
-# コマンドライン引数をチェック
-if len(sys.argv) < 2:
-    print("ウィンドウのタイトルを引数として指定してください。")
-    sys.exit(1)
+# Check if ffmpeg is installed (for rtmp streaming)
+try:
+    subprocess.run(["ffmpeg", "-version"], stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT, check=True)
+    ffmpeg_available = True
+except:
+    ffmpeg_available = False
 
-window_title = sys.argv[1]  # コマンドライン引数からウィンドウのタイトルを取得
+# コマンドライン引数を解析
+parser = argparse.ArgumentParser(description='AVATARIAN - Face replacement program.')
+group = parser.add_mutually_exclusive_group()
+group.add_argument('-window', type=str, help='Name of the window to capture.')
+group.add_argument('-camera', type=int, help='Number of the camera to use.')
+parser.add_argument('-rtmp', type=str, help='URL of RTMP.')
+args, unknown = parser.parse_known_args()
+
+# ウィンドウ名が指定されていないが、未知の引数が存在する場合、それをウィンドウ名とする
+if args.window is None and args.camera is None and unknown:
+    args.window = unknown[0]
 
 # 'avatars' フォルダ内のすべての '.jpg' および '.png' ファイルのパスを取得
 avatar_images_paths = glob.glob('avatars/*.jpg') + glob.glob('avatars/*.png')
@@ -27,31 +43,68 @@ avatars = [cv2.imread(image_path) for image_path in avatar_images_paths]
 known_face_encodings = []  # This will hold the numpy array of face encodings
 face_to_avatar_index = {}
 
-print("Active titles are below. Please select the word(s) in it when you fail to start.\n")
-for wnd in gw.getAllWindows():
-    if len(wnd.title):
-        print(wnd.title) 
-# タイトルが指定されたウィンドウを取得
-windows = gw.getWindowsWithTitle(window_title)
-if windows:
-    # remove cmd.exe as first choice of the window in case you run main.py from cmd.exe
-    if window_title in windows[0].title and "main.py" in windows[0].title:
-        windows.pop(0)
-    window = windows[0]
-    window.restore()  # 最小化されている場合はウィンドウを元に戻す
-    window.activate()  # ウィンドウをアクティブにする
+# 入力ソースを設定
+if args.window:
+    # ウィンドウキャプチャを使用
+    windows = gw.getWindowsWithTitle(args.window)
+    if windows:
+        # remove cmd.exe as first choice of the window in case you run main.py from cmd.exe
+        if args.window in windows[0].title and "main.py" in windows[0].title:
+            windows.pop(0)
+        window = windows[0]
+        window.restore()  # 最小化されている場合はウィンドウを元に戻す
+        window.activate()  # ウィンドウをアクティブにする
+        w, h = window.width, window.height
+    else:
+        print(f"'{args.window}' 指定した名前のウィンドウが見つかりませんでした。")
+        print("Active titles are below. Please select the word(s) in it when you fail to start.\n")
+        for wnd in gw.getAllWindows():
+            if len(wnd.title):
+                print(wnd.title) 
+        sys.exit(1)  # ウィンドウが見つからなかった場合にプログラムを終了
+
+elif args.camera is not None:
+    # カメラを使用
+    cap = cv2.VideoCapture(args.camera)
+    w = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+    h = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        
 else:
-    print(f"'{window_title}' 指定した名前のウィンドウが見つかりませんでした。")
-    sys.exit(1)  # ウィンドウが見つからなかった場合にプログラムを終了
+    print('Please specify an input source using -window or -camera.')
+    sys.exit(1)
+
+# 出力先を設定
+if args.rtmp and ffmpeg_available:
+    # RTMPを使用
+    print(args.rtmp,w,h)
+    command = ['ffmpeg', '-y', '-f', 'rawvideo', '-vcodec', 'rawvideo', '-pix_fmt', 'bgr24', '-s', '{}x{}'.format(w, h), '-r', '25', '-i', '-', '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-preset', 'ultrafast', '-f', 'flv', '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2'.format(w), args.rtmp]
+    # ffmpegプロセスの開始
+    process = subprocess.Popen(command, stdin=subprocess.PIPE)
+    stream = True
+elif args.rtmp:
+    print('Can not start rtmp streaming. Please install ffmpeg.')
+    if args.window:
+        window.close()
+    else:
+        cap.release()
+    sys.exit(1)
+else:
+    # 画面に表示
+    stream = None
 
 # 無限ループで映像を処理する
 while True:
-    # ウインドウのbboxを取得し、画面をキャプチャする
-    x, y, w, h = window.left, window.top, window.width, window.height
-    screenshot = pyautogui.screenshot(region=(x, y, w, h))
-    frame = np.array(screenshot)
-    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-
+    # 入力ソースからフレームを取得
+    if args.window:
+        x, y, w, h = window.left, window.top, window.width, window.height
+        screenshot = pyautogui.screenshot(region=(x, y, w, h))
+        frame = np.array(screenshot)
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+    else:
+        ret, frame = cap.read()
+        if not ret:
+            break
+    
     # 画像から顔の位置を検出する
     face_locations = face_recognition.face_locations(frame)
 
@@ -75,7 +128,6 @@ while True:
             else:
                 avatar_image = avatars[-1]  # Use last one when No more avatars available
 
-
         # Get the face location and calculate the new size and position
         top, right, bottom, left = face_locations[index]
         face_width = right - left
@@ -95,25 +147,24 @@ while True:
         new_dimensions = (right_new - left_new, bottom_new - top_new)
         avatar_resized = cv2.resize(avatar_image, new_dimensions)
         frame[top_new:bottom_new, left_new:right_new] = avatar_resized
+    
+    # 出力先にフレームを送信
+    if stream:
+        cv2.imshow("Avatarian", frame)
+        process.stdin.write(frame.tobytes())
+        sleep(0.01)
+    else:
+        cv2.imshow("Avatarian", frame)
 
-    '''
-    # 顔の特徴抽出をしない場合
-    # 検出した顔の数だけ繰り返す
-    for i, (top, right, bottom, left) in enumerate(face_locations):
-        # avatars リストの長さで割った余りをインデックスとして使用
-        index = i % len(avatars)
-        # 選択したアバター画像をリサイズする
-        avatar_resized = cv2.resize(avatars[index], (right - left, bottom - top))
-        # 顔の位置にアバター画像を重ねる
-        frame[top:bottom, left:right] = avatar_resized
-
-    '''
-
-    # 画像を表示する
-    cv2.imshow("@"+window_title, frame)
     # qキーを押すと終了する
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
-# カメラとウィンドウを閉じる
-cv2.destroyAllWindows()
+
+# 入力ソースと出力先を閉じる
+if args.window:
+    window.close()
+else:
+    cap.release()
+if process:
+    process.release()
 
