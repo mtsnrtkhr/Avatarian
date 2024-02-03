@@ -10,6 +10,7 @@ import sys
 import argparse
 import subprocess
 from time import sleep
+#import imageio #can treat gif with alpha channel https://stackoverflow.com/questions/67454019/how-to-read-gif-with-alpha-channel-in-python-opencv
 
 # Check if ffmpeg is installed (for rtmp streaming)
 try:
@@ -26,18 +27,63 @@ group.add_argument('-camera', type=int, help='Number of the camera to use.')
 parser.add_argument('-rtmp', type=str, help='URL of RTMP.')
 args, unknown = parser.parse_known_args()
 
+def read_gif_animation(file_path):
+    cap = cv2.VideoCapture(file_path)
+    frames = []
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        frames.append(frame)
+        #print(len(frame))
+        #np.savetxt("frame.csv", frame.reshape((3,-1)), fmt="%s",header=str(frame.shape))
+        #cv2.imshow("frame", frame)
+        #cv2.waitKey(50)
+    cap.release()
+    return frames
+
+def is_gif_animation(avatar_image):
+    try:
+        frames = len(avatar_image)
+        # check if image is list(gif;animationframes) or numpy.ndarray(jpeg/png;image)
+        if isinstance(avatar_image, list):
+            return True, frames
+        else:
+            return False, 0
+    except:
+        return False, 0
+
+def image_in_gif_frame(avatar_image, frame_count):
+    g = False
+    f = 0
+    g, f = is_gif_animation(avatar_image)
+    if g:
+        f = frame_count % f
+        avatar_image = avatar_image[f]
+    return avatar_image
+    
+def overlay_image(background, overlay):
+    # Create a mask for non-white pixels in the overlay image
+    mask = cv2.inRange(overlay, (255,255,255), (255,255,255))
+    # Overlay the non-white parts of the overlay image onto the background
+    result = cv2.bitwise_and(background, background, mask=mask)
+    result += cv2.bitwise_and(overlay, overlay, mask=~mask)
+    return result
+
 # ウィンドウ名が指定されていないが、未知の引数が存在する場合、それをウィンドウ名とする
 if args.window is None and args.camera is None and unknown:
     args.window = unknown[0]
 
 # 'avatars' フォルダ内のすべての '.jpg' および '.png' ファイルのパスを取得
-avatar_images_paths = glob.glob('avatars/*.jpg') + glob.glob('avatars/*.png')
+avatar_images_paths = glob.glob('avatars/*.jpg') + glob.glob('avatars/*.png') 
+avatar_gif_images_paths = glob.glob('avatars/*.GIF')
 
 # 画像を格納するためのリストを初期化
 avatars = []
 
 # アバター画像を読み込み、リストに追加
-avatars = [cv2.imread(image_path) for image_path in avatar_images_paths]
+avatars =  [read_gif_animation(image_path) for image_path in avatar_gif_images_paths]
+avatars += [cv2.imread(image_path) for image_path in avatar_images_paths]
 
 # 顔の特徴に対応するアバター画像を保持する配列と辞書
 known_face_encodings = []  # This will hold the numpy array of face encodings
@@ -91,6 +137,7 @@ else:
     # 画面に表示
     stream = None
 
+frame_count = 0
 # 無限ループで映像を処理する
 while True:
     # 入力ソースからフレームを取得
@@ -119,13 +166,16 @@ while True:
             matched_index = matches.index(True)
             avatar_index = face_to_avatar_index[matched_index]
             avatar_image = avatars[avatar_index]
+            avatar_image = image_in_gif_frame(avatar_image, frame_count)
         else:
             if len(avatars) > len(known_face_encodings):
                 known_face_encodings.append(face_encoding)
                 face_to_avatar_index[len(known_face_encodings) - 1] = len(known_face_encodings) - 1
                 avatar_image = avatars[len(known_face_encodings) - 1]
+                avatar_image = image_in_gif_frame(avatar_image, frame_count)
             else:
                 avatar_image = avatars[-1]  # Use last one when No more avatars available
+                avatar_image = image_in_gif_frame(avatar_image, frame_count)
 
         # Get the face location and calculate the new size and position
         top, right, bottom, left = face_locations[index]
@@ -145,7 +195,9 @@ while True:
         # Resize and overlay the avatar on the frame
         new_dimensions = (right_new - left_new, bottom_new - top_new)
         avatar_resized = cv2.resize(avatar_image, new_dimensions)
-        frame[top_new:bottom_new, left_new:right_new] = avatar_resized
+        avatar_overlay = overlay_image(frame[top_new:bottom_new, left_new:right_new], avatar_resized)
+        #frame[top_new:bottom_new, left_new:right_new] = avatar_resized
+        frame[top_new:bottom_new, left_new:right_new] = avatar_overlay
     
     # 出力先にフレームを送信
     if stream:
@@ -158,6 +210,8 @@ while True:
     # qキーを押すと終了する
     if cv2.waitKey(1) & 0xFF == ord("q"):
         break
+
+    frame_count += 1
 
 # 入力ソースと出力先を閉じる
 if args.window:
