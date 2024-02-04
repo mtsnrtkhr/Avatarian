@@ -68,7 +68,7 @@ python main.py (-window WINDOW_NAME / -camera CAMERA_NUMBER) -rtmp YOUR_RTMP_STR
 
 6. 以下のスクリプトでPythonのライブラリをcmd.exeでインストールします。
 ```
-pip install opencv-python face_recognition pyautogui pygetwindow setuptools
+pip install opencv-python face_recognition pyautogui pygetwindow setuptools imageo
 ```
 
 ### C++コンパイラについて

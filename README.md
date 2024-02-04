@@ -67,7 +67,7 @@ You can install this app on Windows OS in 5 steps from scratch:
 4. Download "Avatarian" from this repository as a zip file and extract it.
 5. Install libraries of Python by the script below in cmd.exe.  
 ```shell
-pip install opencv-python face_recognition pyautogui pygetwindow setuptools
+pip install opencv-python face_recognition pyautogui pygetwindow setuptools imageio
 ```
 
 ### About C++ Compiler
