@@ -27,64 +27,58 @@ group.add_argument('-camera', type=int, help='Number of the camera to use.')
 parser.add_argument('-rtmp', type=str, help='URL of RTMP.')
 args, unknown = parser.parse_known_args()
 
-def read_gif_animation(file_path):
-    cap = cv2.VideoCapture(file_path)
-    frames = []
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
-        frames.append(frame)
-        #print(len(frame))
-        #np.savetxt("frame.csv", frame.reshape((3,-1)), fmt="%s",header=str(frame.shape))
-        #cv2.imshow("frame", frame)
-        #cv2.waitKey(50)
-    cap.release()
-    return frames
-
-def is_gif_animation(avatar_image):
-    try:
-        frames = len(avatar_image)
-        # check if image is list(gif;animationframes) or numpy.ndarray(jpeg/png;image)
-        if isinstance(avatar_image, list):
-            return True, frames
-        else:
-            return False, 0
-    except:
-        return False, 0
-
-def image_in_gif_frame(avatar_image, frame_count):
-    g = False
-    f = 0
-    g, f = is_gif_animation(avatar_image)
-    if g:
-        f = frame_count % f
-        avatar_image = avatar_image[f]
-    return avatar_image
+def convert_color_space(img):
+    if len(img.shape) == 3 and img.shape[2] == 4:
+        # non-animation with alpha channel
+        return cv2.cvtColor(img, cv2.COLOR_BGR2RGBA)
+    elif len(img.shape) == 4:
+        # gif/png animation with alpha channel
+        for i in range(img.shape[0]):
+            img[i] =cv2.cvtColor(img[i], cv2.COLOR_BGR2RGBA) 
+        return img
+    else:
+        # image without alpha channel
+        return img
     
-def overlay_image(background, overlay):
-    # Create a mask for non-white pixels in the overlay image
-    mask = cv2.inRange(overlay, (255,255,255), (255,255,255))
-    # Overlay the non-white parts of the overlay image onto the background
-    result = cv2.bitwise_and(background, background, mask=mask)
-    result += cv2.bitwise_and(overlay, overlay, mask=~mask)
-    return result
+def overlay(dest, src):
+    '''
+    use alpha channel for png and gif by reading image with iio.imread(image_path, plugin="pillow", mode="RGBA"
+    Thanks to https://blanktar.jp/blog/2015/02/python-opencv-overlay
+    '''
+    if src.shape[-1] == 4:
+        mask = src[:,:,3]  # alpha channels
+        mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)  # duplicate for R,G,B
+        mask = mask / 255  # normalize alpha channnels from 0-255 to 0.0-1.0
+        src = src[:,:,:3]  # image
+        dest = (dest *(1 - mask))  # Darken the original image based on transparency
+        dest += src * mask  # overlay image with transparency to original image
+    else:
+        dest = src
+    return dest
+    
 
 # ウィンドウ名が指定されていないが、未知の引数が存在する場合、それをウィンドウ名とする
 if args.window is None and args.camera is None and unknown:
     args.window = unknown[0]
 
-# 'avatars' フォルダ内のすべての '.jpg' および '.png' ファイルのパスを取得
-avatar_images_paths = glob.glob('avatars/*.jpg') + glob.glob('avatars/*.png') 
-avatar_gif_images_paths = glob.glob('avatars/*.GIF')
+# 'avatars' フォルダ内のすべてのjpg, jpeg, png, gifファイルのパスを取得
+avatar_images_paths = []
+avatar_paths = glob.glob('avatars/*')
+possible_file_types = ["jpg", "jpeg", "png", "apng", "gif"]
+for file_path in avatar_paths:
+    for ext in possible_file_types:
+        if file_path.lower().endswith(ext):
+            avatar_images_paths += [file_path]
 
 # 画像を格納するためのリストを初期化
 avatars = []
 
 # アバター画像を読み込み、リストに追加
-avatars =  [read_gif_animation(image_path) for image_path in avatar_gif_images_paths]
-avatars += [cv2.imread(image_path) for image_path in avatar_images_paths]
-#avatars += [iio.imread(image_path) for image_path in avatar_images_paths]
+avatars = [iio.imread(image_path) for image_path in avatar_images_paths]
+avatars_rgba = [cv2.imread(image_path) if image_path.endswith("jpg") \
+                else iio.imread(image_path, plugin="pillow", mode="RGBA") \
+                for image_path in avatar_images_paths]
+avatars = [convert_color_space(i) for i in avatars_rgba]
 
 # 顔の特徴に対応するアバター画像を保持する配列と辞書
 known_face_encodings = []  # This will hold the numpy array of face encodings
@@ -167,23 +161,13 @@ while True:
             matched_index = matches.index(True)
             avatar_index = face_to_avatar_index[matched_index]
             avatar_image = avatars[avatar_index]
-#            cv2.imshow("1",avatar_image)
-#            cv2.waitKey(1000)
-            avatar_image = image_in_gif_frame(avatar_image, frame_count)
         else:
             if len(avatars) > len(known_face_encodings):
                 known_face_encodings.append(face_encoding)
                 face_to_avatar_index[len(known_face_encodings) - 1] = len(known_face_encodings) - 1
                 avatar_image = avatars[len(known_face_encodings) - 1]
-#                cv2.imshow("2",avatar_image)
-#                cv2.waitKey(1000)
-                avatar_image = image_in_gif_frame(avatar_image, frame_count)
-
             else:
                 avatar_image = avatars[-1]  # Use last one when No more avatars available
-                avatar_image = image_in_gif_frame(avatar_image, frame_count)
-#                cv2.imshow("3",avatar_image)
-#                cv2.waitKey(1000)
 
         # Get the face location and calculate the new size and position
         top, right, bottom, left = face_locations[index]
@@ -202,10 +186,17 @@ while True:
 
         # Resize and overlay the avatar on the frame
         new_dimensions = (right_new - left_new, bottom_new - top_new)
-        avatar_resized = cv2.resize(avatar_image, new_dimensions)
-        avatar_overlay = overlay_image(frame[top_new:bottom_new, left_new:right_new], avatar_resized)
-        #frame[top_new:bottom_new, left_new:right_new] = avatar_resized
-        frame[top_new:bottom_new, left_new:right_new] = avatar_overlay
+        if len(avatar_image.shape) == 3 and avatar_image.shape[2] == 4:
+            # image with alpha channel (gif, png)
+            frame[top_new:bottom_new, left_new:right_new] = overlay(frame[top_new:bottom_new, left_new:right_new], cv2.resize(avatar_image, new_dimensions))
+
+        elif len(avatar_image.shape) == 4:
+            # animation (with alpha channel; gif, apng)
+            f = frame_count % avatar_image.shape[0]
+            frame[top_new:bottom_new, left_new:right_new] = overlay(frame[top_new:bottom_new, left_new:right_new], cv2.resize(avatar_image[f], new_dimensions))
+        else:
+            # image (jpg, jpeg)
+            frame[top_new:bottom_new, left_new:right_new] = cv2.resize(avatar_image, new_dimensions)
     
     # 出力先にフレームを送信
     if stream:
