@@ -67,8 +67,8 @@ python main.py (-window WINDOW_NAME / -camera CAMERA_NUMBER) -rtmp YOUR_RTMP_STR
 5. このリポジトリから"Avatarian"をzipファイルとしてダウンロードし、解凍します。
 
 6. 以下のスクリプトでPythonのライブラリをcmd.exeでインストールします。
-```
-pip install opencv-python face_recognition pyautogui pygetwindow setuptools
+```shell
+pip install opencv-python face_recognition pyautogui pygetwindow setuptools imageio
 ```
 
 ### C++コンパイラについて
