@@ -27,21 +27,23 @@ group.add_argument('-camera', type=int, help='Number of the camera to use.')
 parser.add_argument('-rtmp', type=str, help='URL of RTMP.')
 args, unknown = parser.parse_known_args()
 
-def convert_color_space(img):
-    if len(img.shape) == 3 and img.shape[2] == 4:
+def convert_color_space(src):
+    if len(src.shape) == 3 and src.shape[2] == 4:
         # non-animation with alpha channel
-        return cv2.cvtColor(img, cv2.COLOR_BGR2RGBA)
-    elif len(img.shape) == 4:
+        return cv2.cvtColor(src, cv2.COLOR_BGR2RGBA)
+    elif len(src.shape) == 4:
         # gif/png animation with alpha channel
-        for i in range(img.shape[0]):
-            img[i] =cv2.cvtColor(img[i], cv2.COLOR_BGR2RGBA) 
-        return img
+        for i in range(src.shape[0]):
+            src[i] =cv2.cvtColor(src[i], cv2.COLOR_BGR2RGBA) 
+        return src
     else:
-        # image without alpha channel
-        return img
+        # nothing needed for image without alpha channel
+        return src
     
-def overlay(dest, src):
+def overlay(dst, src):
     '''
+    dst is image without alpha channel
+    this is alpha_composite of dst and src 
     use alpha channel for png and gif by reading image with iio.imread(image_path, plugin="pillow", mode="RGBA"
     Thanks to https://blanktar.jp/blog/2015/02/python-opencv-overlay
     '''
@@ -50,32 +52,32 @@ def overlay(dest, src):
         mask = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)  # duplicate for R,G,B
         mask = mask / 255  # normalize alpha channnels from 0-255 to 0.0-1.0
         src = src[:,:,:3]  # image
-        dest = (dest *(1 - mask))  # Darken the original image based on transparency
-        dest += src * mask  # overlay image with transparency to original image
+        dst = (dst *(1 - mask))  # Darken the original image based on transparency
+        dst += src * mask  # overlay image with transparency to original image
     else:
-        dest = src
-    return dest
+        dst = src
+    return dst.astype(np.uint8)
     
 
 # ウィンドウ名が指定されていないが、未知の引数が存在する場合、それをウィンドウ名とする
 if args.window is None and args.camera is None and unknown:
     args.window = unknown[0]
 
-# 'avatars' フォルダ内のすべてのjpg, jpeg, png, gifファイルのパスを取得
+# 'avatars' フォルダ内のすべてのjpg, jpeg, png, apng, gifファイルのパスを取得
 avatar_images_paths = []
 avatar_paths = glob.glob('avatars/*')
 possible_file_types = ["jpg", "jpeg", "png", "apng", "gif"]
 for file_path in avatar_paths:
+    file_path = file_path.lower()
     for ext in possible_file_types:
-        if file_path.lower().endswith(ext):
+        if file_path.endswith(ext):
             avatar_images_paths += [file_path]
 
 # 画像を格納するためのリストを初期化
 avatars = []
 
 # アバター画像を読み込み、リストに追加
-avatars = [iio.imread(image_path) for image_path in avatar_images_paths]
-avatars_rgba = [cv2.imread(image_path) if image_path.endswith("jpg") \
+avatars_rgba = [cv2.imread(image_path) if image_path.endswith("jpg") or image_path.endswith("jpeg")\
                 else iio.imread(image_path, plugin="pillow", mode="RGBA") \
                 for image_path in avatar_images_paths]
 avatars = [convert_color_space(i) for i in avatars_rgba]
@@ -214,7 +216,7 @@ while True:
 
 # 入力ソースと出力先を閉じる
 if args.window:
-    window.close()
+    cv2.destroyAllWindows()
 else:
     cap.release()
 if process:
