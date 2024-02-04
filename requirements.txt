@@ -14,3 +14,4 @@ pyperclip==1.8.2
 PyRect==0.2.0
 PyScreeze==0.1.30
 pytweening==1.0.7
+imageio==2.33.1
