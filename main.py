@@ -10,7 +10,7 @@ import sys
 import argparse
 import subprocess
 from time import sleep
-#import imageio #can treat gif with alpha channel https://stackoverflow.com/questions/67454019/how-to-read-gif-with-alpha-channel-in-python-opencv
+import imageio.v3 as iio #can treat gif with alpha channel https://stackoverflow.com/questions/67454019/how-to-read-gif-with-alpha-channel-in-python-opencv
 
 # Check if ffmpeg is installed (for rtmp streaming)
 try:
@@ -84,6 +84,7 @@ avatars = []
 # アバター画像を読み込み、リストに追加
 avatars =  [read_gif_animation(image_path) for image_path in avatar_gif_images_paths]
 avatars += [cv2.imread(image_path) for image_path in avatar_images_paths]
+#avatars += [iio.imread(image_path) for image_path in avatar_images_paths]
 
 # 顔の特徴に対応するアバター画像を保持する配列と辞書
 known_face_encodings = []  # This will hold the numpy array of face encodings
@@ -166,16 +167,23 @@ while True:
             matched_index = matches.index(True)
             avatar_index = face_to_avatar_index[matched_index]
             avatar_image = avatars[avatar_index]
+#            cv2.imshow("1",avatar_image)
+#            cv2.waitKey(1000)
             avatar_image = image_in_gif_frame(avatar_image, frame_count)
         else:
             if len(avatars) > len(known_face_encodings):
                 known_face_encodings.append(face_encoding)
                 face_to_avatar_index[len(known_face_encodings) - 1] = len(known_face_encodings) - 1
                 avatar_image = avatars[len(known_face_encodings) - 1]
+#                cv2.imshow("2",avatar_image)
+#                cv2.waitKey(1000)
                 avatar_image = image_in_gif_frame(avatar_image, frame_count)
+
             else:
                 avatar_image = avatars[-1]  # Use last one when No more avatars available
                 avatar_image = image_in_gif_frame(avatar_image, frame_count)
+#                cv2.imshow("3",avatar_image)
+#                cv2.waitKey(1000)
 
         # Get the face location and calculate the new size and position
         top, right, bottom, left = face_locations[index]
