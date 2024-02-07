@@ -49,7 +49,7 @@ and replace YOUR_RTMP_STREAMING_URL with your actual RTMP streaming URL.
 ## Avatars
 Currently, this app supports avatar creation using image files only, not 3D models.  
 Please save your preferred avatar image in the 'avatars' folder.  
-The image should be in jpg(jpeg), png(apng) or gif format.  
+The image should be in jpg(jpeg), png(apng) or gif format and it's extension.  
 Avatars are assigned in the order that faces are recognized,  
 corresponding to the alphabetical order of their names.  
 If there aren't enough avatars, the last image will be assigned to the remaining faces.
@@ -80,3 +80,8 @@ For more information on the license, please refer to the following article:
 
 Please note that by default, installing the Microsoft C++ Build Tool will also install the C++ compiler and Cmake.
 
+
+### About dlib
+Normally, dlib is installed without CUDA enabled.
+You can compile dlib by your self and make CUDA enabled.
+Then the speed of fps dramatically improved around 30 fps (when GTX3070 is used)
