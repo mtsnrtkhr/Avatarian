@@ -47,7 +47,7 @@ python main.py (-window WINDOW_NAME / -camera CAMERA_NUMBER) -rtmp YOUR_RTMP_STR
 ## アバター
 現在、このアプリは画像ファイルを使用したアバター作成のみをサポートしており、3Dモデルはサポートしていません。  
 お好みのアバター画像を’avatars’フォルダに保存してください。  
-画像はjpg(jpeg)、png(apng)またはgif形式である必要があります。  
+画像はjpg(jpeg)、png(apng)またはgif形式である必要があります（拡張子も対応したものにしてください）。  
 アバターは、顔が認識された順序に対応して、名前のアルファベット順に割り当てられます。  
 アバターが足りない場合、最後の画像が残りの顔に割り当てられます。  
 
@@ -80,3 +80,21 @@ Microsoft Visual Studio Communityは個人使用に適していますが、
 (2022年8月18日公開)  
 
 なお、Microsoft C++ Build Toolをデフォルトでインストールすると、C++コンパイラとCmakeも同時にインストールされます。
+
+
+### 高速化（dlibのCUDA有効化）について
+face_recognition　をインストールする際に一緒にdlibというパッケージがインストールされます。  
+このdlibが顔の検出と認識を担っていますが、通常ではGPU（CUDA）を使わないモードになっているため、  
+Avatarianの高速化のためには自分でCUDA有効化したdlibをコンパイルし、既存のdlibをアンインストール後、
+作成したdlibをインストールしてください。
+```shell
+pip uninstall dlib
+```
+dlib をコンパイル後、下記でインストール
+```shell
+python setup.py install
+```
+
+詳しい手順は、下記の記事を参考にしてください。  
+[WindowsでdlibをCUDA対応にする](https://qiita.com/mtsnrtkhr/items/708a93409f3c8803f4d6)
+
