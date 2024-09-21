@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "avatarian-onnx"
+version = "0.1.0"
+description = ""
+authors = ["Mat'z"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+imageio = "^2.35.1"
+opencv-python = "^4.10.0.84"
+pyautogui = "^0.9.54"
+pygetwindow = "^0.0.9"
+setuptools = "^74.0.0"
+openvino = "^2024.3.0"
+pyside6 = "^6.7.2"
+
+
+[[tool.poetry.source]]
+name = "onnxruntime-gpu"
+url = "https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/"
+priority = "explicit"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
