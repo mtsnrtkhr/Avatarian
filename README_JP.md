@@ -6,7 +6,8 @@ Avatarian（アバタリアン）は、ウェブ会議での人々の顔をリ�
 これは、ウェブ会議アプリ「Around」でのAvatarianのデモ画像です。
 
 ## 使い方
-このアプリケーションでは、以下のオプションを利用してカスタマイズが可能です。
+このアプリケーションは現在（Ver2.0）、WindowsOS専用です。  
+以下のオプションを利用してカスタマイズが可能です。
 
 ### 1. アプリケーション選択
 置き換えたい顔が映っているアプリケーションを１つ指定できます。  
@@ -30,24 +31,25 @@ python main.py -window WINDOW_NAME
 各モデルのライセンスは*ライセンス*の項目を参照ください。
 
 #### 顔検出モデルのオプション
-```--detection_model```, ```-dm``` : 上記のモデルのパス（YuNetはonnxファイル, face-detection-adas, face-detection-retailはxmlファイル）、Harr Cascadeは'haarcascades'を指定してください。デフォルト値：```'./models/opencv_zoo/face_detection_yunet/face_detection_yunet_2023mar.onnx'```  
-```--conf_threshold```, ```-cth``` (0~1): 数値が高いほど顔と認識できるものに限って検出します。ぼやけた顔も検出するには数値を下げる必要があります。デフォルト値：```0.6```  
-```--nms_threshold``` (0~1)：NMSという手法で、重複する検出ボックスの削除に利用するパラメーターです。指定した値より信頼度が高いもののみ残します。デフォルト値：```0.3```（YuNetのみ）  
-```--top_k```：NMSの処理前に上位何個の検出ボックスを使うかを指定するパラメーターです。少ないほど高速になります。デフォルト値：```5000```（YuNetのみ）  
+- ```--detection_model```, ```-dm``` : 上記のモデルのパス（YuNetはonnxファイル, face-detection-adas, face-detection-retailはxmlファイル）、Harr Cascadeは'haarcascades'を指定してください。デフォルト値：```'./models/opencv_zoo/face_detection_yunet/face_detection_yunet_2023mar.onnx'```  
+- ```--conf_threshold```, ```-cth``` (0~1): 数値が高いほど顔と認識できるものに限って検出します。ぼやけた顔も検出するには数値を下げる必要があります。デフォルト値：```0.6```  
+- ```--nms_threshold``` (0~1)：NMSという手法で、重複する検出ボックスの削除に利用するパラメーターです。指定した値より信頼度が高いもののみ残します。デフォルト値：```0.3```（YuNetのみ）  
+- ```--top_k```：NMSの処理前に上位何個の検出ボックスを使うかを指定するパラメーターです。少ないほど高速になります。デフォルト値：```5000```（YuNetのみ）  
+- ```-device```: ['CPU', 'GPU', 'NPU'] OpenVINOモデルを利用する際、指定したデバイスで最適化されます。（'GPU'のオプションはNVIDIAのCUDAではありません）デフォルト値：```'CPU'```
 
 ### 3. 顔認識モデル
 顔の認識のモデルを指定できます
-- dlib:有名な顔認識のモデルに日本人の顔を追加学習させたもの。これを独自にOpenVino用のフォーマットにして高速化したもの。
-- SFace:認識精度が高いモデルと言われているが、日本人だとあまり変わらないか、劣る可能性がある。速度はdlibのOpenVino版の倍以上かかる。
+- original:有名な顔認識のモデルである"dlib face recognition"にアジア人の顔を追加学習させたものを独自にOpenVino用のフォーマットにして高速化したもの。
+- SFace:認識精度が高いモデルと言われているが、日本人だとあまり変わらないか、劣る可能性がある。CPUでの実行速度はoriginalの倍以上かかる。
 
 各モデルのライセンスは*ライセンス*の項目を参照ください。
 
 #### 顔認識モデルのオプション
-```--recognition_model```, ```-rm```：上記のモデルのパス（SFaceはonnxファイル, dlibはxmlファイル）を指定してください。デフォルト値：```'./models/original/taguchi_face_recognition_resnet_v1_openvino_fp16_optimized.xml'```  
-```--compare_face_method```, ```-cfm```：['L2', 'COSINE'] L2は特徴量の距離、COSINEはベクトルのコサイン類似度で計算。dlibを使うときは"L2"、SFaceは"COSINE"を推奨。デフォルト値：```'L2'```  
-```--compare_face_tolerance```, ```-cft```：顔が同じかどうかを判断する指標。L2のときは0が完全一致で、0.4~0.6を推奨、COSINEのときは1が完全一致で、0.7-0.8を推奨。デフォルト値：```0.4```  
-```--face_alignment```, ```-fa```：['Yes', 'No'] YuNetを使って検出した顔を縦向きにそろえて切り出す処理。この処理によって顔の認識率が上がる。速度低下はほぼありません。デフォルト値：```'Yes'``` (YuNet-Sfaceの組み合わせのみ)： 　
-
+- ```--recognition_model```, ```-rm```：上記のモデルのパス（SFaceはonnxファイル, dlibはxmlファイル）を指定してください。デフォルト値：```'./models/original/taguchi_face_recognition_resnet_v1_openvino_fp16_optimized.xml'```  
+- ```--compare_face_method```, ```-cfm```：['L2', 'COSINE'] L2は特徴量の距離、COSINEはベクトルのコサイン類似度で計算。dlibを使うときは"L2"、SFaceは"COSINE"を推奨。デフォルト値：```'L2'```  
+- ```--compare_face_tolerance```, ```-cft```：顔が同じかどうかを判断する指標。L2のときは0が完全一致で、0.4~0.6を推奨、COSINEのときは1が完全一致で、0.7-0.8を推奨。デフォルト値：```0.4```  
+- ```--face_alignment```, ```-fa```：['Yes', 'No'] YuNetを使って検出した顔を縦向きにそろえて切り出す処理。この処理によって顔の認識率が上がる。速度低下はほぼありません。デフォルト値：```'Yes'``` (YuNet-Sfaceの組み合わせのみ)： 　
+- ```-device```: ['CPU', 'GPU', 'NPU'] OpenVINOモデルを利用する際、指定したデバイスで最適化されます。（'GPU'のオプションはNVIDIAのCUDAではありません）デフォルト値：```'CPU'```
 
 ### 4. アバター
 現在、このアプリは画像ファイルを使用したアバター作成のみをサポートしており、3Dモデルはサポートしていません。  
@@ -63,8 +65,8 @@ python main.py -window WINDOW_NAME
 #### アバターのライセンス
 アバターの画像は生成AIによって作成されたものです。CC0 1.0 Universalライセンスのもとで提供されます。
 
-## インストール方法
-このアプリは、Windows OSに対して完全に新規で5ステップでインストールできます：  
+## 5. インストール方法
+このアプリは、Windows OSに対して完全に新規で３ステップでインストールできます：  
 
 1. Python（バージョン3.12）をインストールします。  
 
@@ -72,10 +74,20 @@ python main.py -window WINDOW_NAME
 
 3. pip install -r poetry-requirements.txt で必要なファイルをインストールします
 
-## ライセンス
-modelsフォルダに保管されている各モデルはそれぞれライセンスが定められています。
+## 6. ライセンス
+本ソフトウェアは、MITライセンスに基づき利用することができます。ライセンス全文は、本配布物に含まれるLICENSEファイルをご確認ください。  
 
-### 外部モデル一覧
+### オリジナルモデルのライセンス
+- モデル名：**taguchi_face_recognition_resnet_v1_openvino_fp16_optimized**  
+- 形式：OpenVINO (bin/xml)
+-  サイズ：10.9MB
+- ライセンス：このモデルは、CC0 1.0 Universalライセンスのもとで提供されます。
+- 説明： このモデルは、[dlib-models](https://github.com/davisking/dlib-models/blob/master/README.md)のレポジトリでCC0 1.0 Universalライセンスで公開されている、**taguchi_face_recognition_resnet_model_v1.dat**をベースに、OpenVINO形式に変換し、FP16に量子化することで高速化を図ったものです。  
+Taguchi氏によって開発された**taguchi_face_recognition_resnet_model_v1**はオリジナルの**dlib_face_recognition_resnet_model_v1**を改良し、アジア人顔の認識精度を高めたことが特徴です。
+
+
+### 外部モデルのライセンス
+modelsフォルダに保管されている各モデルはそれぞれライセンスが定められています。
 
 | モデル名 | 形式 | サイズ | ライセンス | 出典 | 用途 |
 |---|---|---|---|---|---|
@@ -87,19 +99,4 @@ modelsフォルダに保管されている各モデルはそれぞれライセ�
 
 **各ライセンスの詳細については、各モデルのディレクトリ内のLICENSEファイルを参照してください。**  
 
-### オリジナルモデル
-#### モデル名
-- **taguchi_face_recognition_resnet_v1_openvino_fp16_optimized**  
-#### 説明
-- このモデルは、[dlib-models](https://github.com/davisking/dlib-models/blob/master/README.md)のレポジトリでCC0 1.0 Universalライセンスで公開されている、taguchi_face_recognition_resnet_model_v1.datをベースに、OpenVINO形式に変換し、FP16に量子化することで高速化を図ったものです。  
-Taguchi氏によって開発されたtaguchi_face_recognition_resnet_model_v1はオリジナルのdlib_face_recognition_resnet_model_v1を改良し、アジア人顔の認識精度を高めたことが特徴です。
-
-#### 形式
-- OpenVINO (bin/xml)
-
-#### サイズ
-- 10.9MB
-
-#### ライセンス
-- このモデルは、CC0 1.0 Universalライセンスのもとで提供されます。
 
