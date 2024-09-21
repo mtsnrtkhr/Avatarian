@@ -164,3 +164,4 @@ cython_debug/
 
 /tests/
 /avatars/gitignore_avatars/
+/models/local_test/
