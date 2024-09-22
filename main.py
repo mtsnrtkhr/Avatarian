@@ -336,7 +336,7 @@ if "face_recognition_sface" in args.recognition_model:
     )
     recognition_model = "sface"
 
-elif all(x in args.recognition_model for x in ["face_recognition_resnet_model_v1", "xml"]):
+elif args.recognition_model == "taguchi_face_recognition_resnet_v1_openvino_fp16_optimized.xml":
     recognition_model = "dlib"
     face_recognition_model = core.read_model(args.recognition_model)
     # 動的形状の設定
@@ -348,7 +348,7 @@ elif all(x in args.recognition_model for x in ["face_recognition_resnet_model_v1
     print("not supported dlib onnx")
     sys.exit(1)
     """
-    # dlibのonnxモデルはなぜかkernel errorが出るため利用しない
+    # dlibのonnx変換モデルはなぜかkernel errorが出るため利用しない
     recognition_model = "dlib"
     # ONNXモデルのロードと初期化
     onnx_path = args.recognition_model
