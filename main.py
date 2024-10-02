@@ -336,7 +336,7 @@ if "face_recognition_sface" in args.recognition_model:
     )
     recognition_model = "sface"
 
-elif args.recognition_model == "taguchi_face_recognition_resnet_v1_openvino_fp16_optimized.xml":
+elif "taguchi_face_recognition_resnet_v1_openvino_fp16_optimized.xml" in args.recognition_model:
     recognition_model = "dlib"
     face_recognition_model = core.read_model(args.recognition_model)
     # 動的形状の設定
